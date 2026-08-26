@@ -16,16 +16,19 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
 
       - name: Install Dependencies
         run: npm install --legacy-peer-deps
 
-      - name: Build Web Assets
-        run: npm run build
+      - name: Ensure Capacitor Packages
+        run: npm install @capacitor/core @capacitor/cli @capacitor/android --save --legacy-peer-deps
 
-      - name: Add Android Platform & Sync
+      - name: Build Web Application
+        run: npm run build || npx vite build
+
+      - name: Initialize and Sync Android
         run: |
+          npx cap init "AlAfdal" "com.alafdal.center" --web-dir dist || true
           npx cap add android || true
           npx cap sync android
 
@@ -36,7 +39,10 @@ jobs:
           java-version: '17'
 
       - name: Make Gradle Executable
-        run: chmod +x android/gradlew
+        run: |
+          if [ -d "android" ]; then
+            chmod +x android/gradlew
+          fi
 
       - name: Build APK with Gradle
         run: |
